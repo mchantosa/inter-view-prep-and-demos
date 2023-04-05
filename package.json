@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "prompt-sync": "^4.2.0"
+    "google-dictionary-api": "^1.0.8",
+    "prompt-sync": "^4.2.0",
+    "urban-dictionary": "^3.0.2"
   }
 }

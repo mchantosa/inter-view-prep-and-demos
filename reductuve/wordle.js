@@ -1,31 +1,44 @@
 const prompt = require('prompt-sync')();
 
 class Wordle {
-  static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
+  static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   static WORDS = getWordList();
+
+  constructor(){
+    this.setBoard();
+  }
+
+  setBoard(){
+    this.lettersNotTried = Wordle.LETTERS.split('')
+    this.lettersIn = [];
+    this.lettersOut = [];
+    this.attempts = [];
+    this.observableWord = ['_', '_', '_', '_', '_']
+    this.tries = 0;
+  }
 
   static getRandomWord(){
     const length = this.WORDS.length;
     return this.WORDS[Math.floor(Math.random()*length)];
   }
 
-  constructor(){
-    this.setBoard();
+  printAttempts(){
+    const indent = ' '.repeat(5);
+    if(this.attempts.length === 0) return `${indent}no attempts made\n`
+    else {
+      let returnStr = ``;
+      this.attempts.forEach(attempt=>returnStr += `${indent}${attempt}\n`)
+      return returnStr;
+    }
   }
-  
-  setBoard(){
-    this.lettersNotTried = Wordle.LETTERS.split()
-    this.lettersIn = [];
-    this.lettersOut = [];
-    this.tries = 0;
-  }
-
   printLettersIn(){return this.lettersIn.join('')}
   
   printLettersOut(){return this.lettersOut.join('')}
   
   printLettersNotTried(){return this.lettersNotTried.join('')}
+
+  printObservableWord(){return this.observableWord.join(' ')}
 
   greetings(){
     console.log(`Want to play?`)
@@ -41,45 +54,93 @@ class Wordle {
     return ans;
   }
 
+  pickAWord(msg){
+    console.log(msg)
+    let word = prompt('=> ',).trim().toUpperCase();
+    if (word.length !== 5) {
+      this.displayBoard()
+      this.pickAWord('Please pick a word with 5 letters')
+    } else if (word.match(/[^A-Z]/)) {
+      this.displayBoard()
+      this.pickAWord('Please use only a-z and A-Z characters')
+    } else {
+      this.attempts.push(word);
+      this.updateBoard(word);
+      this.displayBoard();
+    }
+  }
+
+  updateBoard(word){
+    word.split('').forEach((letter,index)=>{
+      this.lettersNotTried = this.lettersNotTried
+        .filter(lntLetter => lntLetter !== letter);
+      
+      const re = RegExp(`${letter}`,'g')
+      const trueWordMatches = this.word.match(re);
+      const trueWordCount = (trueWordMatches)? trueWordMatches.length : 0;
+      const playedWordCount = word.split('').filter(ltr=> ltr === letter).length
+      const lettersInCount = this.lettersIn.filter(inLetter => inLetter === letter).length;
+      if(playedWordCount > lettersInCount){
+        for(let i = 0; 
+          i < Math.min(trueWordCount-lettersInCount, playedWordCount-lettersInCount); 
+          i++){
+          this.lettersIn.push(letter);
+        }
+        this.lettersIn.sort();
+      }
+      if(!this.word.includes(letter) && !this.lettersOut.includes(letter)) {
+        this.lettersOut.push(letter)
+        this.lettersOut.sort() 
+      }
+      if(letter === this.word[index]){
+        this.observableWord[index] = letter;
+      }
+    })
+  }
+
   fareTheWell(){
     console.log('Thank you for visiting, have a wonderful day!')
   }
   
   displayBoard(header){
     console. clear();
-    if(header)console.log(header)
+    if(header) console.log(header)
     else console.log('')
-    console.log(`\n\nA Wordle inspired game\n`
-      + `Letters with correct placement will remain in word\n\n`
-      + `Word:         Letters in word: ${this.printLettersIn()}\n` 
-      + `_ _ _ _ _     Letters not in word: ${this.printLettersOut()}\n\n`
-      + `Untried letters: ${this.printLettersNotTried()}\n`
+    console.log(`WORD: ${this.word}`)
+    console.log(`A Wordle inspired game\n`
+      + `Letters with correct placement will be shown in WORD\n\n`
+      + `WORD:         Known letters in word: ${this.printLettersIn()}\n` 
+      + `${this.printObservableWord()}     Known letters not in word: ${this.printLettersOut()}\n\n`
+      + `-----------------------------------------------------------------\n`
+      + `ATTEMPTS:\n`
+      + `${this.printAttempts()}`
+      + `UNTRIED LETTERS: ${this.printLettersNotTried()}\n`
     )
-
   }
   
-  play(){
-    const letsPlay = this.greetings();
-    
-    if(letsPlay==='Y') {
-      this.word = Wordle.getRandomWord();
+  playARound(){
+    this.word = Wordle.getRandomWord();
       this.displayBoard('Welcome Hooman');
       while(this.tries<6){
-        //pick a word 
-        //if word in words
-          //for each letter
-            //if letter in word open letters, add to letters in
-            //if letter not in word open letters, add to letters out
-            //remove from untried letters
-        //if 
+        this.pickAWord('Pick a word');
+        this.tries++;
+        //did player win
+        //if so, this.playerWins = true, break
       }
-    } else {
-      this.fareTheWell();
-    }
+      //if this.playerWins
+        //deliver nice message
+      //else
+        //deliver different nice message
   }
 
+  play(){
+    const letsPlay = this.greetings();
+    if(letsPlay==='Y') {
+      this.playARound();
+    } 
+      
+  }
 }
-
 
 let wordle = new Wordle();
 wordle.play();
@@ -206,7 +267,8 @@ function getWordList(){
     Value	Worry	Which	Young
     Video	Worse	While	Youth
     Virus	Worst	White	Worth
-    Visit	Would	Vital	Voice`
-  words = words.split(/[ \t\r\n\f]/);
+    Visit	Would	Vital	Voice`;
+  //let words = `eeepp aaaaa aaioi`
+  words = words.split(/[ \t\r\n\f]/).filter(word=>word !== '');
   return words.map(word => word.toUpperCase());
 }
