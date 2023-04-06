@@ -1,97 +1,96 @@
 const readlineSync = require('readline-sync');
 
 class Wordle {
-
   static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
   static WORDS = getWordList();
 
-  constructor(){
+  constructor() {
     this.setBoard();
   }
 
-  setBoard(){
-    this.lettersNotTried = Wordle.LETTERS.split('')
+  setBoard() {
+    this.lettersNotTried = Wordle.LETTERS.split('');
     this.lettersIn = [];
     this.lettersOut = [];
     this.attempts = [];
-    this.observableWord = ['_', '_', '_', '_', '_']
+    this.observableWord = ['_', '_', '_', '_', '_'];
     this.tries = 0;
   }
 
-  static getRandomWord(){
-    const length = this.WORDS.length;
-    return this.WORDS[Math.floor(Math.random()*length)];
+  static getRandomWord() {
+    const { length } = this.WORDS;
+    return this.WORDS[Math.floor(Math.random() * length)];
   }
 
-  printAttempts(){
-    const indent = '          '
-    const printAttempt = (attempt) =>{
+  printAttempts() {
+    const indent = '          ';
+    const printAttempt = (attempt) => {
       let returnStr = '';
-      attempt.split('').forEach(letter=>{
-        if(this.lettersOut.includes(letter)){
+      attempt.split('').forEach((letter) => {
+        if (this.lettersOut.includes(letter)) {
           returnStr += letter.toLowerCase();
         } else returnStr += letter;
-      })
+      });
       return returnStr.split('').join(' ');
-    }
-    if(this.attempts.length === 0) return `${indent}no attempts made\n`
-    else {
-      let returnStr = ``;
-      this.attempts.forEach(attempt=>{
-        returnStr += `${indent}${printAttempt(attempt)}\n`
-      })
-      return returnStr;
-    }
+    };
+    if (this.attempts.length === 0) return `${indent}no attempts made\n`;
+
+    let returnStr = '';
+    this.attempts.forEach((attempt) => {
+      returnStr += `${indent}${printAttempt(attempt)}\n`;
+    });
+    return returnStr;
   }
 
-  printLettersIn(){return `[${this.lettersIn.join(' ')}]`}
-  
-  printLettersOut(){return `[${this.lettersOut.join(' ')}]`}
-  
-  printLettersNotTried(){return `[${this.lettersNotTried.join(' ')}]`}
+  printLettersIn() { return `[${this.lettersIn.join(' ')}]`; }
 
-  printObservableWord(){return this.observableWord.join(' ')}
+  printLettersOut() { return `[${this.lettersOut.join(' ')}]`; }
 
-  printWord(){return this.word.split('').join(' ')}
+  printLettersNotTried() { return `[${this.lettersNotTried.join(' ')}]`; }
 
-  greetings () {
-    console.clear()
-    console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.')
-    let index = readlineSync.keyInSelect(
+  printObservableWord() { return this.observableWord.join(' '); }
+
+  printWord() { return this.word.split('').join(' '); }
+
+  greetings() {
+    console.clear();
+    console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.');
+    const index = readlineSync.keyInSelect(
       ['Yes', 'No'],
       'Want to start a game?',
-      { cancel: false });
-    if(index === 0){
+      { cancel: false },
+    );
+    if (index === 0) {
       return true;
-    } else {
-      console.log("Too bad, maybe next time")
-      return false;
     }
+    console.log('Too bad, maybe next time');
+    return false;
   }
 
-  playAgain (){
-    let index = readlineSync.keyInSelect(
+  playAgain() {
+    const index = readlineSync.keyInSelect(
       ['Yes', 'No'],
-      "Another round?",
-      { cancel: false });
-    if(index === 0){
+      'Another round?',
+      { cancel: false },
+    );
+    if (index === 0) {
       return true;
-    } else {
-      console.log("Thanks for hanging out 🫰")
-      return false;
     }
+    console.log('Thanks for hanging out 🫰');
+    return false;
   }
 
-  pickAWord(msg){
-    console.log(msg)
-    let word = readlineSync.question('=> ',)
-    if(word) word = word.trim().toUpperCase();
+  pickAWord(msg) {
+    console.log(msg);
+    let word = readlineSync.question('=> ');
+    if (word) word = word.trim().toUpperCase();
     if (!word || word.length !== 5) {
-      this.displayBoard()
-      this.pickAWord('Please pick a word with 5 letters')
+      this.displayBoard();
+      this.pickAWord('Please pick a word with 5 letters');
     } else if (word.match(/[^A-Z]/)) {
-      this.displayBoard()
-      this.pickAWord('Please use only a-z and A-Z characters')
+      this.displayBoard();
+      this.pickAWord('Please use only a-z and A-Z characters');
     } else {
       this.attempts.unshift(word);
       this.updateBoard(word);
@@ -99,95 +98,94 @@ class Wordle {
     }
   }
 
-  updateBoard(word){
-    word.split('').forEach((letter,index)=>{
+  updateBoard(word) {
+    word.split('').forEach((letter, index) => {
       this.lettersNotTried = this.lettersNotTried
-        .filter(lntLetter => lntLetter !== letter);
-      
-      const re = RegExp(`${letter}`,'g')
+        .filter((lntLetter) => lntLetter !== letter);
+
+      const re = RegExp(`${letter}`, 'g');
       const trueWordMatches = this.word.match(re);
-      const trueWordCount = (trueWordMatches)? trueWordMatches.length : 0;
-      const playedWordCount = word.split('').filter(ltr=> ltr === letter).length
-      const lettersInCount = this.lettersIn.filter(inLetter => inLetter === letter).length;
-      if(playedWordCount > lettersInCount){
-        for(let i = 0; 
-          i < Math.min(trueWordCount-lettersInCount, playedWordCount-lettersInCount); 
-          i++){
+      const trueWordCount = (trueWordMatches) ? trueWordMatches.length : 0;
+      const playedWordCount = word.split('').filter((ltr) => ltr === letter).length;
+      const lettersInCount = this.lettersIn.filter((inLetter) => inLetter === letter).length;
+      if (playedWordCount > lettersInCount) {
+        for (let i = 0;
+          i < Math.min(trueWordCount - lettersInCount, playedWordCount - lettersInCount);
+          i++) {
           this.lettersIn.push(letter);
         }
         this.lettersIn.sort();
       }
-      if(!this.word.includes(letter) && !this.lettersOut.includes(letter)) {
-        this.lettersOut.push(letter)
-        this.lettersOut.sort() 
+      if (!this.word.includes(letter) && !this.lettersOut.includes(letter)) {
+        this.lettersOut.push(letter);
+        this.lettersOut.sort();
       }
-      if(letter === this.word[index]){
+      if (letter === this.word[index]) {
         this.observableWord[index] = letter;
       }
-    })
-  }
-  
-  displayBoard(header){
-    console. clear();
-    if(header) console.log(`${header}`)
-    else console.log('')
-    console.log(`Letters with correct placement will be shown in WORD\n\n`
-      + `Untried letters: ${this.printLettersNotTried()}\n`
-      + `Known letters in word: ${this.printLettersIn()}\n` 
-      + `Known letters not in word: ${this.printLettersOut()}\n\n`
-      + `WORD:     ${this.printObservableWord()}\n`
-      + `ATTEMPTS:\n`
-      + `${this.printAttempts()}`
-    )
-  }
-  displayGameSummary(){
-    console.log(`WORD:     ${this.printWord()}\n\n` 
-      + `ATTEMPTS:\n`
-      + `${this.printAttempts()}`
-    )
+    });
   }
 
-  playerWon(){
-    return this.word === this.attempts[0]
+  displayBoard(header) {
+    console.clear();
+    if (header) console.log(`${header}`);
+    else console.log('');
+    console.log('Letters with correct placement will be shown in WORD\n\n'
+      + `Untried letters: ${this.printLettersNotTried()}\n`
+      + `Known letters in word: ${this.printLettersIn()}\n`
+      + `Known letters not in word: ${this.printLettersOut()}\n\n`
+      + `WORD:     ${this.printObservableWord()}\n`
+      + 'ATTEMPTS:\n'
+      + `${this.printAttempts()}`);
   }
-  
-  playARound(){
+
+  displayGameSummary() {
+    console.log(`WORD:     ${this.printWord()}\n\n`
+      + 'ATTEMPTS:\n'
+      + `${this.printAttempts()}`);
+  }
+
+  playerWon() {
+    return this.word === this.attempts[0];
+  }
+
+  playARound() {
     this.word = Wordle.getRandomWord();
     this.displayBoard('Welcome Hooman');
-    while(this.tries<6){
+    while (this.tries < 6) {
       this.pickAWord('Pick a word');
       this.tries++;
-      if(this.playerWon())break;
+      if (this.playerWon()) break;
     }
     console.clear();
     this.displayGameSummary();
-    if(this.playerWon()){
-      console.log(`You're a winner 🎈`);
-    }else {
-      console.log(`Better luck next time`);
+    if (this.playerWon()) {
+      console.log('You\'re a winner 🎈');
+    } else {
+      console.log('Better luck next time');
     }
   }
 
-  play(){
+  play() {
     console.clear();
     const letsPlay = this.greetings();
-    if(letsPlay) {
-      while(true){
+    if (letsPlay) {
+      while (true) {
         this.playARound();
-        if(this.playAgain()){
-          this.setBoard()
+        if (this.playAgain()) {
+          this.setBoard();
         } else {
           break;
         }
       }
-    } 
+    }
   }
 }
 
-let wordle = new Wordle();
+const wordle = new Wordle();
 wordle.play();
 
-function getWordList(){
+function getWordList() {
   let words = `About	Alert	Argue	Beach
     Above	Alike	Arise	Began
     Abuse	Alive	Array	Begin
@@ -311,8 +309,8 @@ function getWordList(){
     Virus	Worst	White	Worth
     Visit	Would	Vital	Voice`;
 
-  //let words = `eeepp aaaaa aaioi`
+  // let words = `eeepp aaaaa aaioi`
 
-  words = words.split(/[ \t\r\n\f]/).filter(word=>word !== '');
-  return words.map(word => word.toUpperCase());
+  words = words.split(/[ \t\r\n\f]/).filter((word) => word !== '');
+  return words.map((word) => word.toUpperCase());
 }
