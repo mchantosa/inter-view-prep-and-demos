@@ -1,4 +1,4 @@
-const prompt = require('prompt-sync')();
+const readlineSync = require('readline-sync');
 
 class Wordle {
 
@@ -52,48 +52,41 @@ class Wordle {
 
   printObservableWord(){return this.observableWord.join(' ')}
 
-  ask(msg, noMsg, huhMsg){
-    const returnFnc= function(){
-      console.log(msg)
-      let ans = prompt('=> ',).trim().toUpperCase()[0];
-      if('N'===ans) {
-        console.clear();
-        console.log(noMsg)
-      } else if('Y'!==ans) {
-        console.clear();
-        console.log(`${huhMsg}`);
-        ans = returnFnc(msg, noMsg, huhMsg);
-      }
-      if(typeof ans === 'string'){
-        return ans==='Y';
-      } else return ans;
-    }
-
-    return returnFnc;
-  }
+  printWord(){return this.word.split('').join(' ')}
 
   greetings () {
-    console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.')
-    prompt('[Press Enter]');
     console.clear()
-
-    this.ask(
-      "Want to start a game?",
-      "Too bad, maybe next time", 
-      "Please answer Y/N"
-    )();
+    console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.')
+    let index = readlineSync.keyInSelect(
+      ['Yes', 'No'],
+      'Want to start a game?',
+      { cancel: false });
+    if(index === 0){
+      return true;
+    } else {
+      console.log("Too bad, maybe next time")
+      return false;
+    }
   }
 
-  playAgain = this.ask(
-    "Another round?",
-    "Thanks for hanging out 🫰", 
-    "Please answer Y/N"
-  )
+  playAgain (){
+    let index = readlineSync.keyInSelect(
+      ['Yes', 'No'],
+      "Another round?",
+      { cancel: false });
+    if(index === 0){
+      return true;
+    } else {
+      console.log("Thanks for hanging out 🫰")
+      return false;
+    }
+  }
 
   pickAWord(msg){
     console.log(msg)
-    let word = prompt('=> ',).trim().toUpperCase();
-    if (word.length !== 5) {
+    let word = readlineSync.question('=> ',)
+    if(word) word = word.trim().toUpperCase();
+    if (!word || word.length !== 5) {
       this.displayBoard()
       this.pickAWord('Please pick a word with 5 letters')
     } else if (word.match(/[^A-Z]/)) {
@@ -133,10 +126,6 @@ class Wordle {
       }
     })
   }
-
-  fareTheWell(){
-    console.log('Thank you for visiting, have a wonderful day!')
-  }
   
   displayBoard(header){
     console. clear();
@@ -152,32 +141,31 @@ class Wordle {
     )
   }
   displayGameSummary(){
-    console.log(`WORD: ${this.word}\n\n` 
+    console.log(`WORD:     ${this.printWord()}\n\n` 
       + `ATTEMPTS:\n`
-      +`-------------\n`
       + `${this.printAttempts()}`
     )
   }
+
   playerWon(){
     return this.word === this.attempts[0]
   }
   
   playARound(){
     this.word = Wordle.getRandomWord();
-      this.displayBoard('Welcome Hooman');
-      while(this.tries<6){
-        this.pickAWord('Pick a word');
-        this.tries++;
-        if(this.playerWon())break;
-      }
-      console.clear();
-      this.displayGameSummary();
-      if(this.playerWon()){
-        console.log(`You're a winner 🎈`);
-      }else {
-        console.log(`Better luck next time`);
-      }
-       
+    this.displayBoard('Welcome Hooman');
+    while(this.tries<6){
+      this.pickAWord('Pick a word');
+      this.tries++;
+      if(this.playerWon())break;
+    }
+    console.clear();
+    this.displayGameSummary();
+    if(this.playerWon()){
+      console.log(`You're a winner 🎈`);
+    }else {
+      console.log(`Better luck next time`);
+    }
   }
 
   play(){
