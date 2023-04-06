@@ -1,9 +1,500 @@
 const prompt = require('prompt-sync')();
 
+const WORDS_LIST = [
+  "ABOUT",
+  "ABOVE",
+  "ABUSE",
+  "ACTOR",
+  "ACUTE",
+  "ADMIT",
+  "ADOPT",
+  "ADULT",
+  "AFTER",
+  "AGAIN",
+  "AGENT",
+  "AGREE",
+  "AHEAD",
+  "ALARM",
+  "ALBUM",
+  "ALERT",
+  "ALIKE",
+  "ALIVE",
+  "ALLOW",
+  "ALONE",
+  "ALONG",
+  "ALTER",
+  "AMONG",
+  "ANGER",
+  "ANGLE",
+  "ANGRY",
+  "APART",
+  "APPLE",
+  "APPLY",
+  "ARENA",
+  "ARGUE",
+  "ARISE",
+  "ARRAY",
+  "ASIDE",
+  "ASSET",
+  "AUDIO",
+  "AUDIT",
+  "AVOID",
+  "AWARD",
+  "AWARE",
+  "BADLY",
+  "BAKER",
+  "BASES",
+  "BASIC",
+  "BASIS",
+  "BEACH",
+  "BEGAN",
+  "BEGIN",
+  "BEGUN",
+  "BEING",
+  "BELOW",
+  "BENCH",
+  "BILLY",
+  "BIRTH",
+  "BLACK",
+  "BLAME",
+  "BLIND",
+  "BLOCK",
+  "BLOOD",
+  "BOARD",
+  "BOOST",
+  "BOOTH",
+  "BOUND",
+  "BRAIN",
+  "BRAND",
+  "BREAD",
+  "BREAK",
+  "BREED",
+  "BRIEF",
+  "BRING",
+  "BROAD",
+  "BROKE",
+  "BROWN",
+  "BUILD",
+  "BUILT",
+  "BUYER",
+  "CABLE",
+  "CALIF",
+  "CARRY",
+  "CATCH",
+  "CAUSE",
+  "CHAIN",
+  "CHAIR",
+  "CHART",
+  "CHASE",
+  "CHEAP",
+  "CHECK",
+  "CHEST",
+  "CHIEF",
+  "CHILD",
+  "CHINA",
+  "CHOSE",
+  "CIVIL",
+  "CLAIM",
+  "CLASS",
+  "CLEAN",
+  "CLEAR",
+  "CLICK",
+  "CLOCK",
+  "CLOSE",
+  "COACH",
+  "COAST",
+  "COULD",
+  "COUNT",
+  "COURT",
+  "COVER",
+  "CRAFT",
+  "CRASH",
+  "CREAM",
+  "CRIME",
+  "CROSS",
+  "CROWD",
+  "CROWN",
+  "CURVE",
+  "CYCLE",
+  "DAILY",
+  "DANCE",
+  "DATED",
+  "DEALT",
+  "DEATH",
+  "DEBUT",
+  "DELAY",
+  "DEPTH",
+  "DOING",
+  "DOUBT",
+  "DOZEN",
+  "DRAFT",
+  "DRAMA",
+  "DRAWN",
+  "DREAM",
+  "DRESS",
+  "DRILL",
+  "DRINK",
+  "DRIVE",
+  "DROVE",
+  "DYING",
+  "EAGER",
+  "EARLY",
+  "EARTH",
+  "EIGHT",
+  "ELITE",
+  "EMPTY",
+  "ENEMY",
+  "ENJOY",
+  "ENTER",
+  "ENTRY",
+  "EQUAL",
+  "ERROR",
+  "EVENT",
+  "EVERY",
+  "EXACT",
+  "EXIST",
+  "EXTRA",
+  "FAITH",
+  "FALSE",
+  "FAULT",
+  "FIBER",
+  "FIELD",
+  "FIFTH",
+  "FIFTY",
+  "FIGHT",
+  "FINAL",
+  "FIRST",
+  "FIXED",
+  "FLASH",
+  "FLEET",
+  "FLOOR",
+  "FLUID",
+  "FOCUS",
+  "FORCE",
+  "FORTH",
+  "FORTY",
+  "FORUM",
+  "FOUND",
+  "FRAME",
+  "FRANK",
+  "FRAUD",
+  "FRESH",
+  "FRONT",
+  "FRUIT",
+  "FULLY",
+  "FUNNY",
+  "GIANT",
+  "GIVEN",
+  "GLASS",
+  "GLOBE",
+  "GOING",
+  "GRACE",
+  "GRADE",
+  "GRAND",
+  "GRANT",
+  "GRASS",
+  "GREAT",
+  "GREEN",
+  "GROSS",
+  "GROUP",
+  "GROWN",
+  "GUARD",
+  "GUESS",
+  "GUEST",
+  "GUIDE",
+  "HAPPY",
+  "HARRY",
+  "HEART",
+  "HEAVY",
+  "HENCE",
+  "HORSE",
+  "HOTEL",
+  "HOUSE",
+  "HUMAN",
+  "IDEAL",
+  "IMAGE",
+  "INDEX",
+  "INNER",
+  "INPUT",
+  "IRONY",
+  "ISSUE",
+  "JOINT",
+  "JUDGE",
+  "JUICE",
+  "KNOWN",
+  "LABEL",
+  "LARGE",
+  "LASER",
+  "LATER",
+  "LAUGH",
+  "LAYER",
+  "LEARN",
+  "LEASE",
+  "LEAST",
+  "LEAVE",
+  "LEGAL",
+  "LEVEL",
+  "LIGHT",
+  "LIMIT",
+  "LOCAL",
+  "LOGIC",
+  "LOOSE",
+  "LOWER",
+  "LUCKY",
+  "LUNCH",
+  "LYING",
+  "MAGIC",
+  "MAJOR",
+  "MAKER",
+  "MARCH",
+  "MATCH",
+  "MAYOR",
+  "MEANT",
+  "MEDIA",
+  "METAL",
+  "MIGHT",
+  "MINOR",
+  "MINUS",
+  "MIXED",
+  "MODEL",
+  "MONEY",
+  "MONTH",
+  "MORAL",
+  "MOTOR",
+  "MOUNT",
+  "MOUSE",
+  "MOUTH",
+  "MOVIE",
+  "MUSIC",
+  "NEEDS",
+  "NEVER",
+  "NEWLY",
+  "NIGHT",
+  "NOISE",
+  "NORTH",
+  "NOTED",
+  "NOVEL",
+  "NURSE",
+  "OCCUR",
+  "OCEAN",
+  "OFFER",
+  "OFTEN",
+  "ORDER",
+  "OTHER",
+  "OUGHT",
+  "PAINT",
+  "PANEL",
+  "PAPER",
+  "PARTY",
+  "PEACE",
+  "PHASE",
+  "PHONE",
+  "PHOTO",
+  "PIECE",
+  "PILOT",
+  "PITCH",
+  "PLACE",
+  "PLAIN",
+  "PLANE",
+  "PLANT",
+  "PLATE",
+  "POINT",
+  "POUND",
+  "POWER",
+  "PRESS",
+  "PRICE",
+  "PRIDE",
+  "PRIME",
+  "PRINT",
+  "PRIOR",
+  "PRIZE",
+  "PROOF",
+  "PROUD",
+  "PROVE",
+  "QUEEN",
+  "QUICK",
+  "QUIET",
+  "QUITE",
+  "RADIO",
+  "RAISE",
+  "RANGE",
+  "RAPID",
+  "RATIO",
+  "REACH",
+  "READY",
+  "REFER",
+  "RIGHT",
+  "RIVAL",
+  "RIVER",
+  "ROMAN",
+  "ROUGH",
+  "ROUND",
+  "ROUTE",
+  "ROYAL",
+  "RURAL",
+  "SCALE",
+  "SCENE",
+  "SCOPE",
+  "SCORE",
+  "SENSE",
+  "SERVE",
+  "SEVEN",
+  "SHALL",
+  "SHAPE",
+  "SHARE",
+  "SHARP",
+  "SHEET",
+  "SHELF",
+  "SHELL",
+  "SHIFT",
+  "SHIRT",
+  "SHOCK",
+  "SHOOT",
+  "SHORT",
+  "SHOWN",
+  "SIGHT",
+  "SINCE",
+  "SIXTH",
+  "SIXTY",
+  "SIZED",
+  "SKILL",
+  "SLEEP",
+  "SLIDE",
+  "SMALL",
+  "SMART",
+  "SMILE",
+  "SMITH",
+  "SMOKE",
+  "SOLID",
+  "SOLVE",
+  "SORRY",
+  "SOUND",
+  "SOUTH",
+  "SPACE",
+  "SPARE",
+  "SPEAK",
+  "SPEED",
+  "SPEND",
+  "SPENT",
+  "SPLIT",
+  "SPOKE",
+  "SPORT",
+  "STAFF",
+  "STAGE",
+  "STAKE",
+  "STAND",
+  "START",
+  "STATE",
+  "STEAM",
+  "STEEL",
+  "STICK",
+  "STILL",
+  "STOCK",
+  "STONE",
+  "STOOD",
+  "STORE",
+  "STORM",
+  "STORY",
+  "STRIP",
+  "STUCK",
+  "STUDY",
+  "STUFF",
+  "STYLE",
+  "SUGAR",
+  "SUITE",
+  "SUPER",
+  "SWEET",
+  "TABLE",
+  "TAKEN",
+  "TASTE",
+  "TAXES",
+  "TEACH",
+  "TEETH",
+  "TEXAS",
+  "THANK",
+  "THEFT",
+  "THEIR",
+  "THEME",
+  "THERE",
+  "THESE",
+  "THICK",
+  "THING",
+  "THINK",
+  "THIRD",
+  "THOSE",
+  "THREE",
+  "THREW",
+  "THROW",
+  "TIGHT",
+  "TIMES",
+  "TIRED",
+  "TITLE",
+  "TODAY",
+  "TOPIC",
+  "TOTAL",
+  "TOUCH",
+  "TOUGH",
+  "TOWER",
+  "TRACK",
+  "TRADE",
+  "TRAIN",
+  "TREAT",
+  "TREND",
+  "TRIAL",
+  "TRIED",
+  "TRIES",
+  "TRUCK",
+  "TRULY",
+  "TRUST",
+  "TRUTH",
+  "TWICE",
+  "UNDER",
+  "UNDUE",
+  "UNION",
+  "UNITY",
+  "UNTIL",
+  "UPPER",
+  "UPSET",
+  "URBAN",
+  "USAGE",
+  "USUAL",
+  "VALID",
+  "VALUE",
+  "VIDEO",
+  "VIRUS",
+  "VISIT",
+  "VITAL",
+  "VOICE",
+  "WASTE",
+  "WATCH",
+  "WATER",
+  "WHEEL",
+  "WHERE",
+  "WHICH",
+  "WHILE",
+  "WHITE",
+  "WHOLE",
+  "WHOSE",
+  "WOMAN",
+  "WORLD",
+  "WORRY",
+  "WORSE",
+  "WORST",
+  "WORTH",
+  "WOULD",
+  "WOUND",
+  "WRITE",
+  "WRONG",
+  "WROTE",
+  "YIELD",
+  "YOUNG",
+  "YOUTH",
+];
+
 class Wordle {
 
   static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  static WORDS = getWordList();
+  static WORDS = WORDS_LIST;
 
   constructor(){
     this.setBoard();
@@ -53,7 +544,7 @@ class Wordle {
   printObservableWord(){return this.observableWord.join(' ')}
 
   ask(msg, noMsg, huhMsg){
-    const returnFnc= function(){
+    const returnFnc = function(){
       console.log(msg)
       let ans = prompt('=> ',).trim().toUpperCase()[0];
       if('N'===ans) {
@@ -134,7 +625,7 @@ class Wordle {
     })
   }
 
-  fareTheWell(){
+  fareTheeWell(){
     console.log('Thank you for visiting, have a wonderful day!')
   }
   
@@ -198,133 +689,3 @@ class Wordle {
 
 let wordle = new Wordle();
 wordle.play();
-
-function getWordList(){
-  let words = `About	Alert	Argue	Beach
-    Above	Alike	Arise	Began
-    Abuse	Alive	Array	Begin
-    Actor	Allow	Aside	Begun
-    Acute	Alone	Asset	Being
-    Admit	Along	Audio	Below
-    Adopt	Alter	Audit	Bench
-    Adult	Among	Avoid	Billy
-    After	Anger	Award	Birth
-    Again	Angle	Aware	Black
-    Agent	Angry	Badly	Blame
-    Agree	Apart	Baker	Blind
-    Ahead	Apple	Bases	Block
-    Alarm	Apply	Basic	Blood
-    Album	Arena	Basis	Board
-    Boost	Buyer	China	Cover
-    Booth	Cable	Chose	Craft
-    Bound	Calif	Civil	Crash
-    Brain	Carry	Claim	Cream
-    Brand	Catch	Class	Crime
-    Bread	Cause	Clean	Cross
-    Break	Chain	Clear	Crowd
-    Breed	Chair	Click	Crown
-    Brief	Chart	Clock	Curve
-    Bring	Chase	Close	Cycle
-    Broad	Cheap	Coach	Daily
-    Broke	Check	Coast	Dance
-    Brown	Chest	Could	Dated
-    Build	Chief	Count	Dealt
-    Built	Child	Court	Death
-    Debut	Entry	Forth	Group
-    Delay	Equal	Forty	Grown
-    Depth	Error	Forum	Guard
-    Doing	Event	Found	Guess
-    Doubt	Every	Frame	Guest
-    Dozen	Exact	Frank	Guide
-    Draft	Exist	Fraud	Happy
-    Drama	Extra	Fresh	Harry
-    Drawn	Faith	Front	Heart
-    Dream	False	Fruit	Heavy
-    Dress	Fault	Fully	Hence
-    Drill	Fiber	Funny	Night
-    Drink	Field	Giant	Horse
-    Drive	Fifth	Given	Hotel
-    Drove	Fifty	Glass	House
-    Dying	Fight	Globe	Human
-    Eager	Final	Going	Ideal
-    Early	First	Grace	Image
-    Earth	Fixed	Grade	Index
-    Eight	Flash	Grand	Inner
-    Elite	Fleet	Grant	Input
-    Empty	Floor	Grass	Issue
-    Enemy	Fluid	Great	Irony
-    Enjoy	Focus	Green	Juice
-    Enter	Force	Gross	Joint
-    Judge	Metal	Media	Newly
-    Known	Local	Might	Noise
-    Label	Logic	Minor	North
-    Large	Loose	Minus	Noted
-    Laser	Lower	Mixed	Novel
-    Later	Lucky	Model	Nurse
-    Laugh	Lunch	Money	Occur
-    Layer	Lying	Month	Ocean
-    Learn	Magic	Moral	Offer
-    Lease	Major	Motor	Often
-    Least	Maker	Mount	Order
-    Leave	March	Mouse	Other
-    Legal	Music	Mouth	Ought
-    Level	Match	Movie	Paint
-    Light	Mayor	Needs	Paper
-    Limit	Meant	Never	Party
-    Peace	Power	Radio	Round
-    Panel	Press	Raise	Route
-    Phase	Price	Range	Royal
-    Phone	Pride	Rapid	Rural
-    Photo	Prime	Ratio	Scale
-    Piece	Print	Reach	Scene
-    Pilot	Prior	Ready	Scope
-    Pitch	Prize	Refer	Score
-    Place	Proof	Right	Sense
-    Plain	Proud	Rival	Serve
-    Plane	Prove	River	Seven
-    Plant	Queen	Quick	Shall
-    Plate	Sixth	Stand	Shape
-    Point	Quiet	Roman	Share
-    Pound	Quite	Rough	Sharp
-    Sheet	Spare	Style	Times
-    Shelf	Speak	Sugar	Tired
-    Shell	Speed	Suite	Title
-    Shift	Spend	Super	Today
-    Shirt	Spent	Sweet	Topic
-    Shock	Split	Table	Total
-    Shoot	Spoke	Taken	Touch
-    Short	Sport	Taste	Tough
-    Shown	Staff	Taxes	Tower
-    Sight	Stage	Teach	Track
-    Since	Stake	Teeth	Trade
-    Sixty	Start	Texas	Treat
-    Sized	State	Thank	Trend
-    Skill	Steam	Theft	Trial
-    Sleep	Steel	Their	Tried
-    Slide	Stick	Theme	Tries
-    Small	Still	There	Truck
-    Smart	Stock	These	Truly
-    Smile	Stone	Thick	Trust
-    Smith	Stood	Thing	Truth
-    Smoke	Store	Think	Twice
-    Solid	Storm	Third	Under
-    Solve	Story	Those	Undue
-    Sorry	Strip	Three	Union
-    Sound	Stuck	Threw	Unity
-    South	Study	Throw	Until
-    Space	Stuff	Tight	Upper
-    Upset	Whole	Waste	Wound
-    Urban	Whose	Watch	Write
-    Usage	Woman	Water	Wrong
-    Usual	Train	Wheel	Wrote
-    Valid	World	Where	Yield
-    Value	Worry	Which	Young
-    Video	Worse	While	Youth
-    Virus	Worst	White	Worth
-    Visit	Would	Vital	Voice`;
-
-  //let words = `eeepp aaaaa aaioi`
-
-  words = words.split(/[ \t\r\n\f]/).filter(word=>word !== '');
-  return words.map(word => word.toUpperCase());
-}
