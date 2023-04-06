@@ -24,35 +24,71 @@ class Wordle {
   }
 
   printAttempts(){
-    const indent = ' '.repeat(5);
+    const indent = '          '
+    const printAttempt = (attempt) =>{
+      let returnStr = '';
+      attempt.split('').forEach(letter=>{
+        if(this.lettersOut.includes(letter)){
+          returnStr += letter.toLowerCase();
+        } else returnStr += letter;
+      })
+      return returnStr.split('').join(' ');
+    }
     if(this.attempts.length === 0) return `${indent}no attempts made\n`
     else {
       let returnStr = ``;
-      this.attempts.forEach(attempt=>returnStr += `${indent}${attempt}\n`)
+      this.attempts.forEach(attempt=>{
+        returnStr += `${indent}${printAttempt(attempt)}\n`
+      })
       return returnStr;
     }
   }
-  printLettersIn(){return this.lettersIn.join('')}
+
+  printLettersIn(){return `[${this.lettersIn.join(' ')}]`}
   
-  printLettersOut(){return this.lettersOut.join('')}
+  printLettersOut(){return `[${this.lettersOut.join(' ')}]`}
   
-  printLettersNotTried(){return this.lettersNotTried.join('')}
+  printLettersNotTried(){return `[${this.lettersNotTried.join(' ')}]`}
 
   printObservableWord(){return this.observableWord.join(' ')}
 
-  greetings(){
-    console.log(`Want to play?`)
-    let ans = prompt('=> ',).trim().toUpperCase()[0];
-    if('N'===ans) {
-      console.clear();
-      console.log("Too bad, maybe next time")
-    } else if('Y'!==ans) {
-      console.clear();
-      console.log("Please answer Y/N");
-      ans = this.greetings();
+  ask(msg, noMsg, huhMsg){
+    const returnFnc= function(){
+      console.log(msg)
+      let ans = prompt('=> ',).trim().toUpperCase()[0];
+      if('N'===ans) {
+        console.clear();
+        console.log(noMsg)
+      } else if('Y'!==ans) {
+        console.clear();
+        console.log(`${huhMsg}`);
+        ans = returnFnc(msg, noMsg, huhMsg);
+      }
+      if(typeof ans === 'string'){
+        return ans==='Y';
+      } else return ans;
     }
-    return ans;
+
+    return returnFnc;
   }
+
+  greetings () {
+    console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.')
+    prompt('[Press Enter]');
+    console.clear()
+
+    this.ask(
+      "Want to start a game?",
+      "Too bad, maybe next time", 
+      "Please answer Y/N"
+    )();
+  }
+
+  playAgain = this.ask(
+    "Another round?",
+    "Thanks for hanging out 🫰", 
+    "Please answer Y/N"
+  )
 
   pickAWord(msg){
     console.log(msg)
@@ -64,7 +100,7 @@ class Wordle {
       this.displayBoard()
       this.pickAWord('Please use only a-z and A-Z characters')
     } else {
-      this.attempts.push(word);
+      this.attempts.unshift(word);
       this.updateBoard(word);
       this.displayBoard();
     }
@@ -104,18 +140,26 @@ class Wordle {
   
   displayBoard(header){
     console. clear();
-    if(header) console.log(header)
+    if(header) console.log(`${header}`)
     else console.log('')
-    console.log(`WORD: ${this.word}`)
-    console.log(`A Wordle inspired game\n`
-      + `Letters with correct placement will be shown in WORD\n\n`
-      + `WORD:         Known letters in word: ${this.printLettersIn()}\n` 
-      + `${this.printObservableWord()}     Known letters not in word: ${this.printLettersOut()}\n\n`
-      + `-----------------------------------------------------------------\n`
+    console.log(`Letters with correct placement will be shown in WORD\n\n`
+      + `Untried letters: ${this.printLettersNotTried()}\n`
+      + `Known letters in word: ${this.printLettersIn()}\n` 
+      + `Known letters not in word: ${this.printLettersOut()}\n\n`
+      + `WORD:     ${this.printObservableWord()}\n`
       + `ATTEMPTS:\n`
       + `${this.printAttempts()}`
-      + `UNTRIED LETTERS: ${this.printLettersNotTried()}\n`
     )
+  }
+  displayGameSummary(){
+    console.log(`WORD: ${this.word}\n\n` 
+      + `ATTEMPTS:\n`
+      +`-------------\n`
+      + `${this.printAttempts()}`
+    )
+  }
+  playerWon(){
+    return this.word === this.attempts[0]
   }
   
   playARound(){
@@ -124,21 +168,31 @@ class Wordle {
       while(this.tries<6){
         this.pickAWord('Pick a word');
         this.tries++;
-        //did player win
-        //if so, this.playerWins = true, break
+        if(this.playerWon())break;
       }
-      //if this.playerWins
-        //deliver nice message
-      //else
-        //deliver different nice message
+      console.clear();
+      this.displayGameSummary();
+      if(this.playerWon()){
+        console.log(`You're a winner 🎈`);
+      }else {
+        console.log(`Better luck next time`);
+      }
+       
   }
 
   play(){
+    console.clear();
     const letsPlay = this.greetings();
-    if(letsPlay==='Y') {
-      this.playARound();
+    if(letsPlay) {
+      while(true){
+        this.playARound();
+        if(this.playAgain()){
+          this.setBoard()
+        } else {
+          break;
+        }
+      }
     } 
-      
   }
 }
 
@@ -268,7 +322,9 @@ function getWordList(){
     Video	Worse	While	Youth
     Virus	Worst	White	Worth
     Visit	Would	Vital	Voice`;
+
   //let words = `eeepp aaaaa aaioi`
+
   words = words.split(/[ \t\r\n\f]/).filter(word=>word !== '');
   return words.map(word => word.toUpperCase());
 }

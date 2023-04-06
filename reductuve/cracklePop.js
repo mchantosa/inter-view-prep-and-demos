@@ -14,7 +14,7 @@
  * You can use any language. 
 */
 
-(function cracklePop(){
+(function () {
   for(let i = 1; i <= 100; i++){
     let log = '';
     if(i%3 === 0)log += 'Crackle';
