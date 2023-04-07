@@ -19,17 +19,41 @@
       summary::-webkit-details-marker { display: none; }
     </style>
     <style>/* main */
-      #board{
+      #board, #keyboard{
         display: flex;
         justify-content: center;
       }
-      td{
+      #board{
+        padding: 0 0 15px 0;
+      }
+      #board td{
+        line-height: 48px;
+        text-align: center;
         height: 48px;
         width: 48px;
         background-color: lightgray;
         margin: 3px;
         display: inline-block;
       }
+      #keyboard td{
+        line-height: 52px;
+        text-align: center;
+        height: 52px;
+        width: 48px;
+        border-radius: 5px;
+        background-color:rgb(25, 25, 25);
+        color: lightgrey;
+        margin: 2px;
+        display: inline-block;
+      }
+      #keyboard td.special{
+        width: 96px;
+      }
+      #keyboard tr{
+        display: flex;
+        justify-content: center;
+      }
+
 
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
@@ -43,7 +67,9 @@
       </table>
     </div>
     <div id="keyboard">
-
+      <table>
+      
+      </table>
     </div>
   </body>
   <script>
@@ -53,35 +79,11 @@
       template.innerHTML = html;
       return template.content.firstChild;
     }
-    const keys = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM']
-    const specialtyKeys = ['Enter', 'Back']
-    const wordTemplate =` <tr>
-  <td></td>
-  <td></td>
-  <td></td>
-  <td></td>
-  <td></td>
-</tr>`;
+
     class Wordle {
       static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       
       constructor() {}
-
-      async setBoard() {
-        this.word = await Wordle.getRandomWord();
-        this.lettersNotTried = Wordle.LETTERS.split('');
-        this.lettersIn = [];
-        this.lettersOut = [];
-        this.attempts = [];
-
-        this.table = document.querySelector('table');
-        this.table.innerHTML = ''
-        for(let i = 0; i < 6; i++){
-          this.table.append(htmlToElement(wordTemplate));
-        }
-
-        this.keyboard = document.querySelector('#keyboard');
-      }
 
       static async getRandomWord() {
         let word;
@@ -101,129 +103,144 @@
         return response.status !== 404
       }
 
-      greetings() {
-        console.clear();
-        console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.');
-        const index = readlineSync.keyInSelect(
-          ['Yes', 'No'],
-          'Want to start a game?',
-          { cancel: false },
-        );
-        if (index === 0) {
-          return true;
-        }
-        console.log('Too bad, maybe next time');
-        return false;
+      toggleWord(index, className){
+        this.board.children[index].classList.toggle(className)
       }
 
-      playAgain() {
-        const index = readlineSync.keyInSelect(
-          ['Yes', 'No'],
-          'Another round?',
-          { cancel: false },
-        );
-        if (index === 0) {
-          return true;
+      toggleCell(index, className){
+        if(index<5){
+          this.board
+          .children[this.activeWordIndex]
+          .children[index].classList.toggle(className)
         }
-        console.log('Thanks for hanging out 🫰');
-        return false;
+        
       }
 
-      pickAWord(msg) {
-        console.log(msg);
-        let word = readlineSync.question('=> ');
-        if (word) word = word.trim().toUpperCase();
-        if (!word || word.length !== 5) {
-          this.displayBoard();
-          this.pickAWord('Please pick a word with 5 letters');
-        } else if (word.match(/[^A-Z]/)) {
-          this.displayBoard();
-          this.pickAWord('Please use only a-z and A-Z characters');
+      advanceActiveWord(){
+        if(!this.activeWordIndex && this.activeWordIndex!== 0){
+          this.activeWordIndex = 0;
+          this.toggleWord(0, 'active')
         } else {
-          this.attempts.unshift(word);
-          this.updateBoard(word);
-          this.displayBoard();
-        }
+          this.toggleCell(5, 'active')
+          delete this.activeCellIndex;
+          this.toggleWord(this.activeWordIndex, 'active')
+          this.activeWordIndex++;
+          this.toggleWord(this.activeWordIndex, 'active')
+        } 
+        this.advanceActiveCell()
       }
 
-      updateBoard(word) {
-        word.split('').forEach((letter, index) => {
-          this.lettersNotTried = this.lettersNotTried
-            .filter((lntLetter) => lntLetter !== letter);
-
-          const re = RegExp(`${letter}`, 'g');
-          const trueWordMatches = this.word.match(re);
-          const trueWordCount = (trueWordMatches) ? trueWordMatches.length : 0;
-          const playedWordCount = word.split('').filter((ltr) => ltr === letter).length;
-          const lettersInCount = this.lettersIn.filter((inLetter) => inLetter === letter).length;
-          if (playedWordCount > lettersInCount) {
-            for (let i = 0;
-              i < Math.min(trueWordCount - lettersInCount, playedWordCount - lettersInCount);
-              i++) {
-              this.lettersIn.push(letter);
-            }
-            this.lettersIn.sort();
-          }
-          if (!this.word.includes(letter) && !this.lettersOut.includes(letter)) {
-            this.lettersOut.push(letter);
-            this.lettersOut.sort();
-          }
-          if (letter === this.word[index]) {
-            this.observableWord[index] = letter;
-          }
-        });
-      }
-
-      displayBoard(header) {
-        console.clear();
-        if (header) console.log(`${header}`);
-        else console.log('');
-        console.log('Letters with correct placement will be shown in WORD\n\n'
-          + `Untried letters: ${this.printLettersNotTried()}\n`
-          + `Known letters in word: ${this.printLettersIn()}\n`
-          + `Known letters not in word: ${this.printLettersOut()}\n\n`
-          + `WORD:     ${this.printObservableWord()}\n`
-          + 'ATTEMPTS:\n'
-          + `${this.printAttempts()}`);
-      }
-
-      displayGameSummary() {
-        console.log(`WORD:     ${this.printWord()}\n\n`
-          + 'ATTEMPTS:\n'
-          + `${this.printAttempts()}`);
-      }
-
-      playerWon() {
-        return this.word === this.attempts[0];
-      }
-
-      playARound() {
-        this.word = Wordle.getRandomWord();
-        this.displayBoard('Welcome Hooman');
-        while (this.tries < 6) {
-          this.pickAWord('Pick a word');
-          this.tries++;
-          if (this.playerWon()) break;
-        }
-        console.clear();
-        this.displayGameSummary();
-        if (this.playerWon()) {
-          console.log('You\'re a winner 🎈');
+      advanceActiveCell(){
+        if(!this.activeCellIndex && this.activeCellIndex!== 0){
+          this.activeCellIndex = 0;
+          this.toggleCell(0, 'active')
         } else {
-          console.log('Better luck next time');
+          this.toggleCell(this.activeCellIndex, 'active')
+          this.activeCellIndex++;
+          this.toggleCell(this.activeCellIndex, 'active')
         }
+      }
+
+      getActiveWord(){
+        return this.board.children[this.activeWordIndex]
+      }
+
+      getActiveCell(){
+        return this.board.children[this.activeWordIndex].children[this.activeCellIndex];
+      }
+
+      async setBoard() {
+        this.word = await Wordle.getRandomWord();
+        this.lettersNotTried = Wordle.LETTERS.split('');
+        this.lettersIn = [];
+        this.lettersOut = [];
+        this.attempts = [];
+
+        this.board = document.querySelector('#board table');
+        const wordTemplate =` <tr>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>`;
+        this.board.innerHTML = ''
+        for(let i = 0; i < 6; i++){
+          this.board.append(htmlToElement(wordTemplate));
+        }
+        this.advanceActiveWord();
+
+        this.keyboard = document.querySelector('#keyboard table');
+        this.keyboard.innerHTML = '';
+        const keyboardTemplate = ` <tr>
+  <td>Q</td>
+  <td>W</td>
+  <td>E</td>
+  <td>R</td>
+  <td>T</td>
+  <td>Y</td>
+  <td>U</td>
+  <td>I</td>
+  <td>O</td>
+  <td>P</td>
+</tr>
+<tr>
+  <td>A</td>
+  <td>S</td>
+  <td>D</td>
+  <td>F</td>
+  <td>G</td>
+  <td>H</td>
+  <td>J</td>
+  <td>K</td>
+  <td>L</td>
+</tr>
+<tr>
+  <td>Z</td>
+  <td>X</td>
+  <td>C</td>
+  <td>V</td>
+  <td>B</td>
+  <td>N</td>
+  <td>M</td>
+</tr>
+<tr>
+  <td class="special">Enter</td>
+  <td class="special">Back</td>
+</tr>`;
+        this.keyboard.innerHTML=keyboardTemplate;
+      }
+
+      processLetter(letter){
+        if(this.activeCellIndex < 5){
+          const cell = this.getActiveCell();
+          cell.textContent = letter;
+          this.advanceActiveCell();
+        }
+      }
+
+      processBack(){
+        //cellIndex = 6
+        //cellIndex < 6
+      }
+
+      processEnter(){
+        
       }
 
       async play() {
         await this.setBoard();
+        console.log(this.word)
+        this.keyboard.addEventListener('click', (e) => {
+          const clicked = e.target;
+          if(clicked.tagName === 'TD'){
+            const buttonContent = clicked.textContent.trim();
+            if (buttonContent === 'Enter') this.processEnter()
+            else if(buttonContent === 'Back') this.processBack()
+            else this.processLetter(buttonContent)
+          }
+        })
         while (true) {
-          console.log(this.word)
-          // this.playARound();
-          // if (this.playAgain()) {
-          //   this.setBoard();
-          // } else {
-          //   break;
-          // }
           break;
         }
       }
@@ -233,7 +250,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       console.log("document loaded...");
       const wordle = new Wordle();
-      await wordle.play()
+      await wordle.play();
       
     })
   </script>
