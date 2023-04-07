@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <title>A Wordle Inspired Game</title>
+    <meta charset="UTF-8" />
+    <style>/* whitespace reset */
+      ul,ol { list-style: none; }
+      h1,h2,h3,h4,h5,h6,pre,code { font-size: 1em; }
+      ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,body,html,p,blockquote,fieldset,input,dl,dt,dd, figure, figcaption {
+        margin: 0;
+        padding: 0; }
+      a img,:link img,:visited img, fieldset { border: none; }
+      address { font-style: normal; }
+      header, section, article, nav, footer, hgroup, details, summary, figure, main { display: block; }
+      mark {
+        color: inherit;
+        background: transparent; }
+      abbr { border: none; }
+      summary::-webkit-details-marker { display: none; }
+    </style>
+    <style>/* main */
+      #board{
+        display: flex;
+        justify-content: center;
+      }
+      td{
+        height: 48px;
+        width: 48px;
+        background-color: lightgray;
+        margin: 3px;
+        display: inline-block;
+      }
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+  </head>
+  <body>
+    <h1>Greetings Hooman</h1>
+    <h2>Shall we play a Wordle inspired game?</h2>
+    <div id="board">
+      <table>
+      
+      </table>
+    </div>
+    <div id="keyboard">
+
+    </div>
+  </body>
+  <script>
+    function htmlToElement(html) {
+      const template = document.createElement('template');
+      html = html.trim();
+      template.innerHTML = html;
+      return template.content.firstChild;
+    }
+    const keys = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM']
+    const specialtyKeys = ['Enter', 'Back']
+    const wordTemplate =` <tr>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+  <td></td>
+</tr>`;
+    class Wordle {
+      static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      constructor() {}
+
+      async setBoard() {
+        this.word = await Wordle.getRandomWord();
+        this.lettersNotTried = Wordle.LETTERS.split('');
+        this.lettersIn = [];
+        this.lettersOut = [];
+        this.attempts = [];
+
+        this.table = document.querySelector('table');
+        this.table.innerHTML = ''
+        for(let i = 0; i < 6; i++){
+          this.table.append(htmlToElement(wordTemplate));
+        }
+
+        this.keyboard = document.querySelector('#keyboard');
+      }
+
+      static async getRandomWord() {
+        let word;
+        while (true){
+          const response = await fetch("https://random-word-api.herokuapp.com/word?length=5");
+          const jsonData = await response.json();
+          word = jsonData[0]
+          if(await this.isWord(word)){
+            break;
+          }
+        }
+        return word;
+      }
+
+      static async isWord(word){
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        return response.status !== 404
+      }
+
+      greetings() {
+        console.clear();
+        console.log('Greetings Hooman, happy to see you. Welcome to this knockoff attempt at Wordle.');
+        const index = readlineSync.keyInSelect(
+          ['Yes', 'No'],
+          'Want to start a game?',
+          { cancel: false },
+        );
+        if (index === 0) {
+          return true;
+        }
+        console.log('Too bad, maybe next time');
+        return false;
+      }
+
+      playAgain() {
+        const index = readlineSync.keyInSelect(
+          ['Yes', 'No'],
+          'Another round?',
+          { cancel: false },
+        );
+        if (index === 0) {
+          return true;
+        }
+        console.log('Thanks for hanging out 🫰');
+        return false;
+      }
+
+      pickAWord(msg) {
+        console.log(msg);
+        let word = readlineSync.question('=> ');
+        if (word) word = word.trim().toUpperCase();
+        if (!word || word.length !== 5) {
+          this.displayBoard();
+          this.pickAWord('Please pick a word with 5 letters');
+        } else if (word.match(/[^A-Z]/)) {
+          this.displayBoard();
+          this.pickAWord('Please use only a-z and A-Z characters');
+        } else {
+          this.attempts.unshift(word);
+          this.updateBoard(word);
+          this.displayBoard();
+        }
+      }
+
+      updateBoard(word) {
+        word.split('').forEach((letter, index) => {
+          this.lettersNotTried = this.lettersNotTried
+            .filter((lntLetter) => lntLetter !== letter);
+
+          const re = RegExp(`${letter}`, 'g');
+          const trueWordMatches = this.word.match(re);
+          const trueWordCount = (trueWordMatches) ? trueWordMatches.length : 0;
+          const playedWordCount = word.split('').filter((ltr) => ltr === letter).length;
+          const lettersInCount = this.lettersIn.filter((inLetter) => inLetter === letter).length;
+          if (playedWordCount > lettersInCount) {
+            for (let i = 0;
+              i < Math.min(trueWordCount - lettersInCount, playedWordCount - lettersInCount);
+              i++) {
+              this.lettersIn.push(letter);
+            }
+            this.lettersIn.sort();
+          }
+          if (!this.word.includes(letter) && !this.lettersOut.includes(letter)) {
+            this.lettersOut.push(letter);
+            this.lettersOut.sort();
+          }
+          if (letter === this.word[index]) {
+            this.observableWord[index] = letter;
+          }
+        });
+      }
+
+      displayBoard(header) {
+        console.clear();
+        if (header) console.log(`${header}`);
+        else console.log('');
+        console.log('Letters with correct placement will be shown in WORD\n\n'
+          + `Untried letters: ${this.printLettersNotTried()}\n`
+          + `Known letters in word: ${this.printLettersIn()}\n`
+          + `Known letters not in word: ${this.printLettersOut()}\n\n`
+          + `WORD:     ${this.printObservableWord()}\n`
+          + 'ATTEMPTS:\n'
+          + `${this.printAttempts()}`);
+      }
+
+      displayGameSummary() {
+        console.log(`WORD:     ${this.printWord()}\n\n`
+          + 'ATTEMPTS:\n'
+          + `${this.printAttempts()}`);
+      }
+
+      playerWon() {
+        return this.word === this.attempts[0];
+      }
+
+      playARound() {
+        this.word = Wordle.getRandomWord();
+        this.displayBoard('Welcome Hooman');
+        while (this.tries < 6) {
+          this.pickAWord('Pick a word');
+          this.tries++;
+          if (this.playerWon()) break;
+        }
+        console.clear();
+        this.displayGameSummary();
+        if (this.playerWon()) {
+          console.log('You\'re a winner 🎈');
+        } else {
+          console.log('Better luck next time');
+        }
+      }
+
+      async play() {
+        await this.setBoard();
+        while (true) {
+          console.log(this.word)
+          // this.playARound();
+          // if (this.playAgain()) {
+          //   this.setBoard();
+          // } else {
+          //   break;
+          // }
+          break;
+        }
+      }
+    }
+
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      console.log("document loaded...");
+      const wordle = new Wordle();
+      await wordle.play()
+      
+    })
+  </script>
+</html>
