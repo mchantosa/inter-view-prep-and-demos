@@ -220,8 +220,16 @@
       }
 
       processBack(){
-        //cellIndex = 6
-        //cellIndex < 6
+        if(this.activeCellIndex >= 5){
+          this.toggleCell(4, 'active')
+          this.activeCellIndex = 4
+          this.getActiveCell().textContent = '';
+        } else if (this.activeCellIndex){
+          this.toggleCell(this.activeCellIndex, 'active')
+          this.activeCellIndex--;
+          this.toggleCell(this.activeCellIndex, 'active')
+          this.getActiveCell().textContent = '';
+        }
       }
 
       processEnter(){
