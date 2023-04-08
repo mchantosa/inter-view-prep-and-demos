@@ -19,6 +19,53 @@
       summary::-webkit-details-marker { display: none; }
     </style>
     <style>/* main */
+      html{
+        font-size: 16px;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+      }
+      #modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 2;
+        background-color:rgba(245, 255, 255, .5);
+      }
+      #modal-content {
+        position:fixed;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 15px;
+        top:25%;
+        right:25%;
+        height:50%;
+        width:50%;
+        border-radius: 15px;
+        background-color:darkslategrey;
+        z-index: 3;
+        overflow-y:scroll;
+        color:azure;
+        font-size: 24px;
+        /* font-weight: bold; */
+      }
+      #close{
+        display: flex;
+        flex-direction: row-reverse;
+      }
+      #close img{
+        width: 30px;
+        height: 30px;
+      }
+      .height-30px{
+        height: 30px;
+      }
+      #modal p{
+        text-align: center;
+        padding: 0 25px 0 25px;
+      }
       #board, #keyboard{
         display: flex;
         justify-content: center;
@@ -29,17 +76,17 @@
       #board td{
         line-height: 48px;
         text-align: center;
-        height: 48px;
-        width: 48px;
+        height: 45px;
+        width: 45px;
         background-color: lightgray;
         margin: 3px;
         display: inline-block;
       }
       #keyboard td{
-        line-height: 52px;
+        line-height: 50px;
         text-align: center;
-        height: 52px;
-        width: 48px;
+        height: 50px;
+        width: 45px;
         border-radius: 5px;
         background-color:rgb(25, 25, 25);
         color: lightgrey;
@@ -53,14 +100,22 @@
         display: flex;
         justify-content: center;
       }
-
-
+      h1{
+        font-size: 28px;
+        text-align: center;
+        padding: 0 0 5px 0;
+      }
+      h2{
+        font-size: 24px;
+        text-align: center;
+        padding: 0 0 15px 0;
+      }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
   </head>
   <body>
     <h1>Greetings Hooman</h1>
-    <h2>Shall we play a Wordle inspired game?</h2>
+    <h2>A Wordle inspired game</h2>
     <div id="board">
       <table>
       
@@ -79,6 +134,20 @@
       template.innerHTML = html;
       return template.content.firstChild;
     }
+
+    const modalTemplate = Handlebars.compile(
+      `<div id="modal">
+        <div id="modal-content">
+          <div>
+            <a href="#" id="close">
+              <img src="icon_close.png" alt="close"/>
+            </a>
+          </div>
+          <p>{{message}}</p>
+          <div class="height-30px"></div>
+        </div>
+      </div>`
+    );
 
     class Wordle {
       static LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -149,12 +218,23 @@
         return this.board.children[this.activeWordIndex].children[this.activeCellIndex];
       }
 
+      getActiveWordWord(){
+        let word = ''
+        const activeWord = this.getActiveWord()
+        for (const cell of activeWord.children){
+          word += cell.textContent.trim()
+        }
+        return word;
+      }
+
       async setBoard() {
         this.word = await Wordle.getRandomWord();
         this.lettersNotTried = Wordle.LETTERS.split('');
         this.lettersIn = [];
         this.lettersOut = [];
         this.attempts = [];
+
+        this.body = document.querySelector('body');
 
         this.board = document.querySelector('#board table');
         const wordTemplate =` <tr>
@@ -211,12 +291,27 @@
         this.keyboard.innerHTML=keyboardTemplate;
       }
 
+      updateBoard(){
+        console.log('board updated')
+      }
+
       processLetter(letter){
         if(this.activeCellIndex < 5){
           const cell = this.getActiveCell();
           cell.textContent = letter;
           this.advanceActiveCell();
         }
+      }
+
+      makeModal(msg){
+        const template = modalTemplate({message: msg});
+        this.body.append(htmlToElement(template))
+        const modal = this.body.querySelector('#modal');
+        const close = this.body.querySelector('#close');
+        close.addEventListener('click', (e) => {
+          e.preventDefault();
+          modal.remove();
+        })
       }
 
       processBack(){
@@ -232,18 +327,25 @@
         }
       }
 
-      processEnter(){
-        
+      async processEnter(){
+        const word = this.getActiveWordWord();
+        if(word.length<5){
+          this.makeModal('Your word must be 5 letters');
+        } else if(!await Wordle.isWord(word)) {
+          this.makeModal('Please enter a valid word');  
+        } else {
+          this.updateBoard();
+        }
       }
 
       async play() {
         await this.setBoard();
         console.log(this.word)
-        this.keyboard.addEventListener('click', (e) => {
+        this.keyboard.addEventListener('click', async (e) => {
           const clicked = e.target;
           if(clicked.tagName === 'TD'){
             const buttonContent = clicked.textContent.trim();
-            if (buttonContent === 'Enter') this.processEnter()
+            if (buttonContent === 'Enter') await this.processEnter()
             else if(buttonContent === 'Back') this.processBack()
             else this.processLetter(buttonContent)
           }
