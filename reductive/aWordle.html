@@ -270,6 +270,7 @@
       async setBoard() {
         const word = await Wordle.getRandomWord();
         this.word = word.word;
+        console.log(this.word);
         this.definition = word.definition;
         this.lettersNotTried = Wordle.LETTERS.split('');
         this.lettersIn = [];
@@ -335,41 +336,35 @@
 
       updateBoard(){
         const cells = this.getActiveWord().children
-        const activeWord = this.getActiveWordWord()
-        
-        activeWord.split('').forEach((letter,index) => {
-          const trueLetter = this.word[index];
-          const cell = cells[index];
-          let totalWordLetterCount= 0;
-          let totalWordLetterPlacement = 0;
-          
-          this.word.split('').forEach((ltr, index)=>{
-            if(letter === ltr){
-              totalWordLetterCount++;
-              if(ltr === cells[index].textContent.trim()){
-                totalWordLetterPlacement++;
-              }
+        let word = this.word.split('');
+        let activeWord = this.getActiveWordWord();
+        let wordCopy = word.slice();
+        let activeWordCopy = activeWord.slice().split('')
+          .map((letter, index)=>{
+            return {
+              letter: letter,
+              oIndex: index,
             }
-          })
-          
-          if(letter === trueLetter){
-            cell.setAttribute('data-match', '2')
-            this.getKeyboardLetter(letter).setAttribute('data-match', '2')
-          } else if ((totalWordLetterCount > 0) && (totalWordLetterCount > totalWordLetterPlacement)){
-            cell.setAttribute('data-match', '1');
-            const keyBoardCell = this.getKeyboardLetter(letter);
-            if(!keyBoardCell.hasAttribute('data-match')){
-              keyBoardCell.setAttribute('data-match', '1');
-            } else if(keyBoardCell.getAttribute('data-match')!=='2'){
-              keyBoardCell.setAttribute('data-match', '1');
-            }
-          } else {
-            cell.setAttribute('data-match', '0');
-            const keyBoardCell = this.getKeyboardLetter(letter);
-            if(!keyBoardCell.hasAttribute('data-match')){
-              keyBoardCell.setAttribute('data-match', '0')
-            }
+        });
+        const activeWordMatches = [];
+
+        for(let index = 4; index >= 0; index--){
+          if(wordCopy[index]===activeWordCopy[index].letter){
+            wordCopy.splice(index,1);
+            activeWordCopy.splice(index,1);
+            activeWordMatches[index] = 2;
           }
+        }
+        for(let index = 0; index < activeWordCopy.length; index++){
+          if(wordCopy.includes(activeWordCopy[index].letter)){
+            activeWordMatches[activeWordCopy[index].oIndex]=1;
+          } else {
+            activeWordMatches[activeWordCopy[index].oIndex]=0;
+          }
+        }
+        activeWordMatches.forEach((rating, index)=>{
+          cells[index].setAttribute('data-match', rating)
+          this.getKeyboardLetter(activeWord[index]).setAttribute('data-match', rating)
         })
       }
         
