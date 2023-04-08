@@ -270,7 +270,7 @@
       async setBoard() {
         const word = await Wordle.getRandomWord();
         this.word = word.word;
-        console.log(this.word);
+        //console.log(this.word);
         this.definition = word.definition;
         this.lettersNotTried = Wordle.LETTERS.split('');
         this.lettersIn = [];
