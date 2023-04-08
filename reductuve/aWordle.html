@@ -23,6 +23,9 @@
         font-size: 16px;
         font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
       }
+      td:hover{
+        cursor: pointer
+      }
       #modal {
         position: fixed;
         top: 0;
@@ -30,7 +33,7 @@
         bottom: 0;
         left: 0;
         z-index: 2;
-        background-color:rgba(245, 255, 255, .5);
+        background-color:rgba(255, 255, 255, .4);
       }
       #modal-content {
         position:fixed;
@@ -44,14 +47,13 @@
         height:50%;
         width:50%;
         border-radius: 15px;
-        background-color:darkslategrey;
+        background-color:rgb(0, 69, 139);
         z-index: 3;
         overflow-y:scroll;
-        color:azure;
-        font-size: 24px;
-        /* font-weight: bold; */
+        color:ghostwhite;
+        font-size: 18px;
       }
-      #close{
+      #modal-content a{
         display: flex;
         flex-direction: row-reverse;
       }
@@ -59,12 +61,18 @@
         width: 30px;
         height: 30px;
       }
+      #modal pre{
+        text-align: left;
+        padding: 0 40px 0 40px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+      }
       .height-30px{
         height: 30px;
-      }
-      #modal p{
-        text-align: center;
-        padding: 0 25px 0 25px;
       }
       #board, #keyboard{
         display: flex;
@@ -81,6 +89,18 @@
         background-color: lightgray;
         margin: 3px;
         display: inline-block;
+      }
+      #board [data-match= '2'], #keyboard [data-match= '2']{
+        background-color: green;
+        color: whitesmoke;
+      }
+      #board [data-match= '1'], #keyboard [data-match= '1']{
+        background-color: orange;
+        color: whitesmoke;
+      }
+      #board [data-match= '0'], #keyboard [data-match= '0']{
+        background-color:rgb(99, 99, 99);
+        color: whitesmoke;
       }
       #keyboard td{
         line-height: 50px;
@@ -139,11 +159,11 @@
       `<div id="modal">
         <div id="modal-content">
           <div>
-            <a href="#" id="close">
-              <img src="icon_close.png" alt="close"/>
+            <a href="#" >
+              <img id="close" src="icon_close.png" alt="close"/>
             </a>
           </div>
-          <p>{{message}}</p>
+          <pre>{{message}}</pre>
           <div class="height-30px"></div>
         </div>
       </div>`
@@ -156,20 +176,29 @@
 
       static async getRandomWord() {
         let word;
+        let definition;
         while (true){
           const response = await fetch("https://random-word-api.herokuapp.com/word?length=5");
           const jsonData = await response.json();
-          word = jsonData[0]
-          if(await this.isWord(word)){
+          word = jsonData[0];
+          const def = await this.isWord(word)
+          if(def){
+            definition = def;
             break;
           }
         }
-        return word;
+        definition = definition.meanings[0].definitions[0].definition;
+        return {word, definition};
       }
 
       static async isWord(word){
         const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-        return response.status !== 404
+        if(response.status === 404) return false;
+        else {
+          const jsonData = await response.json();
+          const word = jsonData[0];
+          return word;
+        }
       }
 
       toggleWord(index, className){
@@ -224,11 +253,17 @@
         for (const cell of activeWord.children){
           word += cell.textContent.trim()
         }
-        return word;
+        return word.toLowerCase();
+      }
+
+      getKeyboardLetter(letter){
+        return this.keyboard.querySelector(`#key-${letter.toUpperCase()}`)
       }
 
       async setBoard() {
-        this.word = await Wordle.getRandomWord();
+        const word = await Wordle.getRandomWord();
+        this.word = word.word;
+        this.definition = word.definition;
         this.lettersNotTried = Wordle.LETTERS.split('');
         this.lettersIn = [];
         this.lettersOut = [];
@@ -253,36 +288,36 @@
         this.keyboard = document.querySelector('#keyboard table');
         this.keyboard.innerHTML = '';
         const keyboardTemplate = ` <tr>
-  <td>Q</td>
-  <td>W</td>
-  <td>E</td>
-  <td>R</td>
-  <td>T</td>
-  <td>Y</td>
-  <td>U</td>
-  <td>I</td>
-  <td>O</td>
-  <td>P</td>
+  <td id="key-Q">Q</td>
+  <td id="key-W">W</td>
+  <td id="key-E">E</td>
+  <td id="key-R">R</td>
+  <td id="key-T">T</td>
+  <td id="key-Y">Y</td>
+  <td id="key-U">U</td>
+  <td id="key-I">I</td>
+  <td id="key-O">O</td>
+  <td id="key-P">P</td>
 </tr>
 <tr>
-  <td>A</td>
-  <td>S</td>
-  <td>D</td>
-  <td>F</td>
-  <td>G</td>
-  <td>H</td>
-  <td>J</td>
-  <td>K</td>
-  <td>L</td>
+  <td id="key-A">A</td>
+  <td id="key-S">S</td>
+  <td id="key-D">D</td>
+  <td id="key-F">F</td>
+  <td id="key-G">G</td>
+  <td id="key-H">H</td>
+  <td id="key-J">J</td>
+  <td id="key-K">K</td>
+  <td id="key-L">L</td>
 </tr>
 <tr>
-  <td>Z</td>
-  <td>X</td>
-  <td>C</td>
-  <td>V</td>
-  <td>B</td>
-  <td>N</td>
-  <td>M</td>
+  <td id="key-Z">Z</td>
+  <td id="key-X">X</td>
+  <td id="key-C">C</td>
+  <td id="key-V">V</td>
+  <td id="key-B">B</td>
+  <td id="key-N">N</td>
+  <td id="key-M">M</td>
 </tr>
 <tr>
   <td class="special">Enter</td>
@@ -292,7 +327,47 @@
       }
 
       updateBoard(){
-        console.log('board updated')
+        const cells = this.getActiveWord().children
+        const activeWord = this.getActiveWordWord()
+        
+        activeWord.split('').forEach((letter,index) => {
+          const trueLetter = this.word[index];
+          const cell = cells[index];
+          let totalWordLetterCount= 0;
+          let totalWordLetterPlacement = 0;
+          
+          this.word.split('').forEach((ltr, index)=>{
+            if(letter === ltr){
+              totalWordLetterCount++;
+              if(ltr === cells[index].textContent.trim()){
+                totalWordLetterPlacement++;
+              }
+            }
+          })
+          
+          if(letter === trueLetter){
+            cell.setAttribute('data-match', '2')
+            this.getKeyboardLetter(letter).setAttribute('data-match', '2')
+          } else if ((totalWordLetterCount > 0) && (totalWordLetterCount > totalWordLetterPlacement)){
+            cell.setAttribute('data-match', '1');
+            const keyBoardCell = this.getKeyboardLetter(letter);
+            if(!keyBoardCell.hasAttribute('data-match')){
+              keyBoardCell.setAttribute('data-match', '1');
+            } else if(keyBoardCell.getAttribute('data-match')!=='2'){
+              keyBoardCell.setAttribute('data-match', '1');
+            }
+          } else {
+            cell.setAttribute('data-match', '0');
+            const keyBoardCell = this.getKeyboardLetter(letter);
+            if(!keyBoardCell.hasAttribute('data-match')){
+              keyBoardCell.setAttribute('data-match', '0')
+            }
+          }
+        })
+      }
+        
+      playerWon(){
+        return this.getActiveWordWord() === this.word;
       }
 
       processLetter(letter){
@@ -303,14 +378,29 @@
         }
       }
 
-      makeModal(msg){
+      makeModal(messages, reset=false){
+        this.modalUp = true;
+        const msg = messages.join(`\n\n`);
         const template = modalTemplate({message: msg});
         this.body.append(htmlToElement(template))
         const modal = this.body.querySelector('#modal');
         const close = this.body.querySelector('#close');
         close.addEventListener('click', (e) => {
           e.preventDefault();
+          delete this.modalUp;
           modal.remove();
+          if(reset){
+            document.location.reload();
+          }
+        })
+        this.body.addEventListener('keyup', (e) => {
+          if(e.key === "Escape"){
+            delete this.modalUp;
+            modal.remove();
+            if(reset){
+              document.location.reload();
+            }
+          }
         })
       }
 
@@ -330,17 +420,27 @@
       async processEnter(){
         const word = this.getActiveWordWord();
         if(word.length<5){
-          this.makeModal('Your word must be 5 letters');
+          this.makeModal(['Your word must be 5 letters']);
         } else if(!await Wordle.isWord(word)) {
-          this.makeModal('Please enter a valid word');  
+          this.makeModal(['Please enter a valid word']);  
         } else {
-          this.updateBoard();
+          this.updateBoard(); 
+          if(this.playerWon()){
+            this.makeModal(
+              ['Congratulations, you got it!', `Word: ${this.word}`, `Definition: ${this.definition}`],
+              true
+            )
+          }else if (this.activeWordIndex === 5){
+            this.makeModal(
+              ['So close!',`Word: ${this.word}`, `Definition: ${this.definition}`],
+              true
+            )
+          }else this.advanceActiveWord();
         }
       }
 
       async play() {
         await this.setBoard();
-        console.log(this.word)
         this.keyboard.addEventListener('click', async (e) => {
           const clicked = e.target;
           if(clicked.tagName === 'TD'){
@@ -350,12 +450,17 @@
             else this.processLetter(buttonContent)
           }
         })
+        this.body.addEventListener('keyup', async (e) => {
+          const clicked = e.key;
+          if (clicked === 'Enter' && !this.modalUp) await this.processEnter()
+          else if(clicked === 'Backspace' && !this.modalUp) this.processBack()
+          else if(clicked.length===1 && !this.modalUp) this.processLetter(clicked.toUpperCase())
+        })
         while (true) {
           break;
         }
       }
     }
-
     
     document.addEventListener('DOMContentLoaded', async () => {
       console.log("document loaded...");
