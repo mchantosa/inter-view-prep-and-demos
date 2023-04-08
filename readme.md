@@ -1,4 +1,4 @@
-# [aWordle.js](reductive/awordle.js)
+# [awordle.js](reductive/awordle.js)
 
 I created this program for an application demonstration. This is my first pass at a command line Wordle emulator. It draws from a fixed pool of a few hundred 5 letter words. It has no dictionary to cross reference user submitted words, so 'aeiou' and 'zzzzz' are both perfectly acceptable. It took me a day.
 
@@ -14,6 +14,6 @@ A game board will consist of
 
 You will be prompted to guess, the board will update based on your guesses. You have 6 tries.
 
-# [aWordle.html](reductive/awordle.html)
+# [awordle.html](reductive/awordle.html)
 
-I adapted the command line version of this application to be a single-page web application so I could deliver it via gist, [you can play it here](https://githubraw.com/mchantosa/inter-view-prep-and-demos/main/reductive/aWordle.html). It took me a day, albeit a very full one. Warning: the dictionary api I used is AWESOME! It is very hard 😆.
+I adapted the command line version of this application to be a single-page web application so I could deliver it via gist, [you can play it here](https://githubraw.com/mchantosa/inter-view-prep-and-demos/main/reductive/awordle.html). It took me a day, albeit a very full one. Warning: the dictionary api I used is AWESOME! It is very hard 😆.
