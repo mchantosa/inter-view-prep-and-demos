@@ -3,6 +3,7 @@
   <head>
     <title>A Wordle Inspired Game</title>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <style>/* whitespace reset */
       ul,ol { list-style: none; }
       h1,h2,h3,h4,h5,h6,pre,code { font-size: 1em; }
@@ -106,12 +107,18 @@
         line-height: 50px;
         text-align: center;
         height: 50px;
-        width: 45px;
+        width: 32px;
         border-radius: 5px;
         background-color:rgb(25, 25, 25);
         color: lightgrey;
         margin: 2px;
         display: inline-block;
+      }
+
+      @media screen and (min-width: 525px) {
+        #keyboard td{
+          width: 45px;
+        }
       }
       #keyboard td.special{
         width: 96px;
