@@ -155,7 +155,7 @@
     </div>
   </body>
   <script>
-    /* */
+    
     function htmlToElement(html) {
       const template = document.createElement('template');
       html = html.trim();
@@ -457,7 +457,7 @@
           const clicked = e.key;
           if (clicked === 'Enter' && !this.modalUp) await this.processEnter()
           else if(clicked === 'Backspace' && !this.modalUp) this.processBack()
-          else if(clicked.length===1 && !this.modalUp) this.processLetter(clicked.toUpperCase())
+          else if(/^[a-z]$/i.test(clicked) && !this.modalUp) this.processLetter(clicked.toUpperCase())
         })
         while (true) {
           break;
